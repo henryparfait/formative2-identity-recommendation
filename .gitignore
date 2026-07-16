@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Keep folder structure via .gitkeep, but you MAY choose to commit the
+# real model/data files below. If they are large, keep these ignores.
+# (Comment a line out to actually commit that artifact.)
+# models/*.pkl
+# models/*.joblib
+# data/processed/*.csv
+
+# Never commit these
+*.zip
+*.log
