@@ -5,7 +5,7 @@ and **voice verification** before revealing a personalised **product
 recommendation**. Built from three separately-developed models, integrated into
 one pipeline.
 
-## Pipeline order (as specified in the assignment)
+## Pipeline order 
 
 ```
 face image --> [Face Recognition] --fail--> ACCESS DENIED
@@ -22,9 +22,7 @@ voice clip --> [Voice Verification] --fail--> ACCESS DENIED (product never shown
 ```
 
 The **face** gate authorises *running* the product model; the **voice** gate
-authorises *revealing* the result. This mirrors the assignment's Task 6
-("input voice -> approves & displays the user to execute the prediction").
-
+authorises *revealing* the result. 
 ## Folder structure
 
 ```
@@ -60,20 +58,18 @@ pip install -r requirements.txt
 # one full transaction
 python main.py --face data/raw/images/hikma_smile.jpeg --voice data/raw/audio/hikma_approve.wav
 
-# authorised run followed by a stranger attempt (good for the demo video)
+# authorised run followed by a stranger attempt
 python main.py --demo
 
 # stranger attempt only
 python main.py --unauthorized
 ```
 
-If a model or CSV is missing, that stage falls back to a **stub** so the
-pipeline still runs while teammate files are being collected. Force stubs with
-`--stub`.
+
 
 ## Team members
 
-hikma, shalom, christian, emmanuel. Each submitted 3 face images (neutral,
+Hikma, Shalom, Christian & Emmanuel. Each submitted 3 face images (neutral,
 smile, surprised) and 2 audio phrases ("Yes, approve" / "Confirm transaction").
 
 ## Identity linkage (important, and stated honestly)
@@ -103,4 +99,3 @@ behaviour.
 - **Small data.** Product recommendation trains on 150 transactions across 5
   classes, so accuracy is modest by design; face/voice train on a handful of
   samples per member and rely heavily on augmentation.
-- `random_state=42` is used throughout for reproducibility.
