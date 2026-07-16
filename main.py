@@ -1,5 +1,5 @@
 """
-main.py  --  Integrated Identity & Product Recommendation System (Person 4)
+main.py  --  Integrated Identity & Product Recommendation System 
 ===========================================================================
 
 Wires the three teammate models into ONE command-line pipeline, in the exact
