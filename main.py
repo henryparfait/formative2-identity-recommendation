@@ -1,5 +1,5 @@
 """
-main.py  --  Integrated Identity & Product Recommendation System 
+main.py  --  Integrated Identity & Product Recommendation System (Person 4)
 ===========================================================================
 
 Wires the three teammate models into ONE command-line pipeline, in the exact
@@ -32,6 +32,20 @@ If any model/CSV file is missing, that stage automatically falls back to a
 stub so you can test the wiring before every teammate file has landed.
 """
 
+import os
+# --- quiet the noisy-but-harmless logs BEFORE heavy libs load ---
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")     # silence TensorFlow info/warns
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")    # silence oneDNN notice
+os.environ.setdefault("GRPC_VERBOSITY", "ERROR")
+
+import warnings
+warnings.filterwarnings("ignore")                       # sklearn version + misc UserWarnings
+try:
+    from sklearn.exceptions import InconsistentVersionWarning
+    warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+except Exception:
+    pass
+
 import argparse
 import sys
 from pathlib import Path
@@ -54,7 +68,14 @@ VOICE_MODEL = MODELS_DIR / "voice_model.pkl"
 MERGED_CSV = PROCESSED_DIR / "merged_dataset.csv"
 ID_MAP_CSV = ROOT / "member_id_map.csv"
 
-TEAM_MEMBERS = ["hikma", "shalom", "christian", "emmanuel"]
+TEAM_MEMBERS = ["hikma", "silver", "christian", "emmanuel"]
+
+# The face model was trained on filename-derived labels. Two members recorded
+# their photos and audio under different names; the face model therefore still
+# outputs the old photo labels. This map translates the model's raw output to
+# the agreed canonical name so identity is consistent across the whole system.
+#   photo label  ->  canonical name
+LABEL_ALIASES = {"mukasa": "emmanuel", "shalom": "silver"}
 
 FACE_THRESHOLD = 0.70   # from P2 notebook
 VOICE_THRESHOLD = 0.65  # from P3 bundle (overridden by bundle value if present)
@@ -121,13 +142,30 @@ def load_models(force_stub=False):
 # ---------------------------------------------------------------------------
 # Stage 1 -- FACE
 # ---------------------------------------------------------------------------
+def _face_stub(face_path):
+    who = Path(face_path).stem.split("_")[0].lower()
+    who = LABEL_ALIASES.get(who, who)
+    if who in TEAM_MEMBERS:
+        return True, who, 0.99, "[stub]"
+    return False, None, 0.10, "[stub] unknown face"
+
+
 def face_gate(face_path, models):
     face_path = Path(face_path)
-    if models["face"] is None:  # ---- stub ----
-        who = face_path.stem.split("_")[0].lower()
-        if who in TEAM_MEMBERS:
-            return True, who, 0.99, "[stub]"
-        return False, None, 0.10, "[stub] unknown face"
+    if models["face"] is None:  # model file missing -> stub
+        return _face_stub(face_path)
+
+    # Real face path needs OpenCV (detect/crop) + TensorFlow (embed). If either
+    # is missing or broken in this environment, fall back to the stub instead of
+    # crashing, so the rest of the pipeline still runs live.
+    try:
+        import cv2  # noqa: F401
+        if not hasattr(cv2, "CascadeClassifier"):
+            raise ImportError("cv2 present but incomplete (no CascadeClassifier)")
+        import tensorflow  # noqa: F401
+    except Exception as e:
+        print(f"  [info] face libraries unavailable ({e}); using face stub")
+        return _face_stub(face_path)
 
     face = pu.extract_face(face_path)
     if face is None:
@@ -135,11 +173,12 @@ def face_gate(face_path, models):
     emb = pu.create_embedding(face)
     X = pu.face_embedding_dataframe(emb)
     model = models["face"]
-    name = model.predict(X)[0]
+    raw_name = str(model.predict(X)[0]).lower()
+    name = LABEL_ALIASES.get(raw_name, raw_name)   # translate to canonical name
     conf = float(max(model.predict_proba(X)[0]))
-    if conf >= FACE_THRESHOLD and str(name).lower() in TEAM_MEMBERS:
-        return True, str(name).lower(), conf, ""
-    return False, str(name).lower(), conf, "below threshold / not a known member"
+    if conf >= FACE_THRESHOLD and name in TEAM_MEMBERS:
+        return True, name, conf, ""
+    return False, name, conf, "below threshold / not a known member"
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +276,9 @@ def main():
     ap = argparse.ArgumentParser(description="Identity + product recommendation demo")
     ap.add_argument("--face")
     ap.add_argument("--voice")
-    ap.add_argument("--demo", action="store_true", help="authorised run + stranger run")
+    ap.add_argument("--demo", action="store_true", help="one authorised run + stranger run")
+    ap.add_argument("--all", action="store_true",
+                    help="run EVERY team member in turn, then a stranger (for the demo video)")
     ap.add_argument("--unauthorized", action="store_true", help="stranger attempt only")
     ap.add_argument("--stub", action="store_true", help="force stub mode")
     args = ap.parse_args()
@@ -249,7 +290,17 @@ def main():
     print("Model status:", status)
     print("ID map:", id_map or "(none loaded)")
 
-    if args.demo:
+    if args.all:
+        # Every member: their smile photo + their approve clip -> expect ACCESS GRANTED
+        for member in TEAM_MEMBERS:
+            run_pipeline(f"data/raw/images/{member}_smile.jpeg",
+                         f"data/raw/audio/{member}_approve.wav",
+                         models, id_map, f"MEMBER: {member.upper()} (expect GRANTED)")
+        # Stranger: unknown face -> expect ACCESS DENIED at the face gate
+        run_pipeline("test_images/stranger.jpg",
+                     "test_audio/stranger.wav",
+                     models, id_map, "UNAUTHORISED ATTEMPT (stranger, expect DENIED)")
+    elif args.demo:
         run_pipeline("data/raw/images/hikma_smile.jpeg",
                      "data/raw/audio/hikma_approve.wav",
                      models, id_map, "FULL TRANSACTION (authorised)")
