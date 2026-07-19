@@ -1,6 +1,6 @@
 """
-main.py  --  Integrated Identity & Product Recommendation System (Person 4)
-===========================================================================
+main.py  --  Integrated Identity & Product Recommendation System
+================================================================
 
 Wires the three teammate models into ONE command-line pipeline, in the exact
 order the assignment specifies:
@@ -19,7 +19,7 @@ order the assignment specifies:
 
 Note on the flow: the FACE gate authorises *running* the product model; the
 VOICE gate authorises *revealing* the result. If voice fails, the product is
-NEVER shown. This matches Task 6 ("voice -> approves & displays the prediction").
+NEVER shown. 
 
 Usage
 -----
@@ -28,12 +28,11 @@ Usage
   python main.py --unauthorized                # stranger attempt only
   python main.py --stub                        # force stub mode (no ML libs)
 
-If any model/CSV file is missing, that stage automatically falls back to a
-stub so you can test the wiring before every teammate file has landed.
+
 """
 
 import os
-# --- quiet the noisy-but-harmless logs BEFORE heavy libs load ---
+
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")     # silence TensorFlow info/warns
 os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")    # silence oneDNN notice
 os.environ.setdefault("GRPC_VERBOSITY", "ERROR")
@@ -55,7 +54,7 @@ import pandas as pd
 import pipeline_utils as pu
 
 # ---------------------------------------------------------------------------
-# Paths (edit only if you move things)
+# Paths 
 # ---------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
 MODELS_DIR = ROOT / "models"
@@ -77,8 +76,8 @@ TEAM_MEMBERS = ["hikma", "silver", "christian", "emmanuel"]
 #   photo label  ->  canonical name
 LABEL_ALIASES = {"mukasa": "emmanuel", "shalom": "silver"}
 
-FACE_THRESHOLD = 0.70   # from P2 notebook
-VOICE_THRESHOLD = 0.65  # from P3 bundle (overridden by bundle value if present)
+FACE_THRESHOLD = 0.70   
+VOICE_THRESHOLD = 0.65  
 
 # Neutral fallback customer used only if a mapped customer_id is missing from
 # the merged dataset (keeps the demo alive instead of crashing).

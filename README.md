@@ -33,18 +33,18 @@ authorises *revealing* the result.
 ├── requirements.txt
 ├── README.md
 ├── models/
-│   ├── product_recommendation_model.joblib   # from Person 1
-│   ├── face_recognition_model.pkl            # from Person 2
-│   └── voice_model.pkl                       # from Person 3
+│   ├── product_recommendation_model.joblib  
+│   ├── face_recognition_model.pkl            
+│   └── voice_model.pkl                       
 ├── data/
 │   ├── raw/
 │   │   ├── images/             # everyone's photos: name_neutral.jpg, name_smile.jpg, ...
 │   │   └── audio/              # everyone's clips:  name_approve.wav, name_confirm.wav
 │   └── processed/
-│       ├── merged_dataset.csv  # from Person 1
-│       ├── image_features.csv  # from Person 2
-│       └── audio_features.csv  # from Person 3
-├── notebooks/                  # the three source notebooks (one per person)
+│       ├── merged_dataset.csv  
+│       ├── image_features.csv  
+│       └── audio_features.csv  
+├── notebooks/                  # the three source notebooks 
 ├── test_images/stranger.jpg    # unauthorised-attempt image
 ├── test_audio/stranger.wav     # unauthorised-attempt audio
 └── outputs/                    # EDA / evaluation plots

@@ -3,13 +3,6 @@ pipeline_utils.py
 ------------------
 Shared helpers for the integrated authentication + recommendation demo.
 
-The face and audio feature extractors here are copied FAITHFULLY from the
-teammates' notebooks (P2 image, P3 audio). This matters: the demo must turn a
-*new* photo / audio clip into features exactly the same way the training data
-was built, or the saved models receive misaligned inputs and predict garbage.
-
-Heavy ML libraries (cv2, tensorflow, librosa) are imported lazily inside the
-functions so that --stub mode runs with no ML dependencies at all.
 """
 
 from pathlib import Path
